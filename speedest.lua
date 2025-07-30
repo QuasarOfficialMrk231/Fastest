@@ -16,7 +16,7 @@ ToggleButton.Parent = ScreenGui
 ToggleButton.AutoButtonColor = false
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 150, 0, 200)
+MainFrame.Size = UDim2.new(0, 150, 0, 230)
 MainFrame.Position = UDim2.new(0.1, 0, 0.2, 0)
 MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 MainFrame.Visible = false
@@ -47,10 +47,10 @@ local function makeDraggable(guiObject)
     local function update(input)
         local delta = input.Position - dragStart
         guiObject.Position = UDim2.new(
-            math.clamp(startPos.X.Scale, 0, 1),
-            math.clamp(startPos.X.Offset + delta.X, 0, workspace.CurrentCamera.ViewportSize.X - guiObject.AbsoluteSize.X),
-            math.clamp(startPos.Y.Scale, 0, 1),
-            math.clamp(startPos.Y.Offset + delta.Y, 0, workspace.CurrentCamera.ViewportSize.Y - guiObject.AbsoluteSize.Y)
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
         )
     end
 
@@ -81,7 +81,6 @@ local function makeDraggable(guiObject)
     end)
 end
 
--- Делаем ToggleButton перетаскиваемым
 local draggingToggle = false
 local dragStartToggle
 local startPosToggle
@@ -144,23 +143,27 @@ local function createInput(posY, placeholder, color)
     return input
 end
 
-local SpeedInput = createInput(5, "Введите скорость", Color3.fromRGB(200, 100, 200))
+local SpeedInput = createInput(5, "Скорость", Color3.fromRGB(200, 100, 200))
 local SetSpeedButton = createButton("Установить скорость", 25)
 
-local StartCloneButton = createButton("Start Clone", 50)
+local TeleportSpeedInput = createInput(50, "Скорость клона", Color3.fromRGB(255, 150, 200))
+local StartCloneButton = createButton("Start Clone", 70)
 
-local RadiusInput = createInput(75, "Радиус круга", Color3.fromRGB(255, 150, 200))
-local CircleSpeedInput = createInput(95, "Скорость круга", Color3.fromRGB(100, 150, 255))
-local GitOvalButton = createButton("GitOval", 115)
+local RadiusInput = createInput(95, "Радиус круга", Color3.fromRGB(255, 150, 200))
+local CircleSpeedInput = createInput(115, "Скорость круга", Color3.fromRGB(100, 150, 255))
+local GitOvalButton = createButton("GitOval", 135)
 
-local RunOnWayButton = createButton("RunOnWay", 140)
+local RunOnWayButton = createButton("RunOnWay", 160)
 
 local hrp = nil
 local humanoid = nil
+local animator = nil
+
 local function getCharacterParts()
     local char = lp.Character or lp.CharacterAdded:Wait()
     hrp = char:WaitForChild("HumanoidRootPart")
     humanoid = char:WaitForChild("Humanoid")
+    animator = humanoid:FindFirstChildOfClass("Animator")
 end
 getCharacterParts()
 lp.CharacterAdded:Connect(getCharacterParts)
@@ -187,13 +190,14 @@ StartCloneButton.MouseButton1Click:Connect(function()
         end
         return
     end
+    local teleportDelay = tonumber(TeleportSpeedInput.Text) or 0.01
     runningClone = true
     cloneCoroutine = coroutine.create(function()
         while runningClone do
             hrp.CFrame = hrp.CFrame * CFrame.new(5, 0, 5)
-            wait(0.01)
+            wait(teleportDelay)
             hrp.CFrame = hrp.CFrame * CFrame.new(-5, 0, -5)
-            wait(0.01)
+            wait(teleportDelay)
         end
     end)
     coroutine.resume(cloneCoroutine)
@@ -229,10 +233,10 @@ RunOnWayButton.MouseButton1Click:Connect(function()
         runOnWayTrack = nil
         return
     end
-    if humanoid then
+    if animator then
         local anim = Instance.new("Animation")
-        anim.AnimationId = "rbxassetid://180426354"
-        runOnWayTrack = humanoid:LoadAnimation(anim)
+        anim.AnimationId = "rbxassetid://507766388" -- R15 беговая анимация
+        runOnWayTrack = animator:LoadAnimation(anim)
         runOnWayTrack.Priority = Enum.AnimationPriority.Action
         runOnWayTrack:Play()
         runOnWayTrack:AdjustSpeed(5)
