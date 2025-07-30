@@ -8,7 +8,7 @@ ScreenGui.IgnoreGuiInset = true
 
 local ToggleButton = Instance.new("TextButton")
 ToggleButton.Text = "≡"
-ToggleButton.Size = UDim2.new(0, 25, 0, 25) -- уменьшено в 2 раза
+ToggleButton.Size = UDim2.new(0, 25, 0, 25)
 ToggleButton.Position = UDim2.new(0.05, 0, 0.1, 0)
 ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -16,7 +16,7 @@ ToggleButton.Parent = ScreenGui
 ToggleButton.AutoButtonColor = false
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 150, 0, 200) -- уменьшено в 2 раза
+MainFrame.Size = UDim2.new(0, 150, 0, 200)
 MainFrame.Position = UDim2.new(0.1, 0, 0.2, 0)
 MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 MainFrame.Visible = false
@@ -81,7 +81,36 @@ local function makeDraggable(guiObject)
     end)
 end
 
-makeDraggable(ToggleButton)
+-- Делаем ToggleButton перетаскиваемым
+local draggingToggle = false
+local dragStartToggle
+local startPosToggle
+
+ToggleButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        draggingToggle = true
+        dragStartToggle = input.Position
+        startPosToggle = ToggleButton.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                draggingToggle = false
+            end
+        end)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if draggingToggle and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStartToggle
+        ToggleButton.Position = UDim2.new(
+            startPosToggle.X.Scale,
+            startPosToggle.X.Offset + delta.X,
+            startPosToggle.Y.Scale,
+            startPosToggle.Y.Offset + delta.Y
+        )
+    end
+end)
+
 makeDraggable(MainFrame)
 
 ToggleButton.MouseButton1Click:Connect(function()
@@ -90,12 +119,12 @@ end)
 
 local function createButton(name, posY)
     local button = Instance.new("TextButton")
-    button.Size = UDim2.new(0.9, 0, 0, 20) -- уменьшена высота в 2 раза
+    button.Size = UDim2.new(0.9, 0, 0, 20)
     button.Position = UDim2.new(0.05, 0, 0, posY)
     button.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     button.BorderColor3 = Color3.fromRGB(0, 255, 200)
     button.Text = name
-    button.TextSize = 10 -- уменьшен размер текста
+    button.TextSize = 10
     button.Parent = MainFrame
     createColorCycleText(button)
     button.AutoButtonColor = false
@@ -104,12 +133,12 @@ end
 
 local function createInput(posY, placeholder, color)
     local input = Instance.new("TextBox")
-    input.Size = UDim2.new(0.9, 0, 0, 15) -- уменьшена высота
+    input.Size = UDim2.new(0.9, 0, 0, 15)
     input.Position = UDim2.new(0.05, 0, 0, posY)
     input.PlaceholderText = placeholder
     input.BackgroundColor3 = color
     input.Text = ""
-    input.TextSize = 10 -- уменьшен размер текста
+    input.TextSize = 10
     input.ClearTextOnFocus = false
     input.Parent = MainFrame
     return input
@@ -204,6 +233,7 @@ RunOnWayButton.MouseButton1Click:Connect(function()
         local anim = Instance.new("Animation")
         anim.AnimationId = "rbxassetid://180426354"
         runOnWayTrack = humanoid:LoadAnimation(anim)
+        runOnWayTrack.Priority = Enum.AnimationPriority.Action
         runOnWayTrack:Play()
         runOnWayTrack:AdjustSpeed(5)
     end
